@@ -6,52 +6,62 @@ namespace spotivy_app.spotivy
     {
         public static void SendMessage(string message)
         {
-            MessageBorder(message.Length);
-            Console.WriteLine("| " + message + " |");
-            MessageBorder(message.Length);
+            FormatMessage(message, 116, true);
         }
 
-        public static void Conversation(string[] messages, Option[][] options)
+        public static void Conversation(string message, string[] messages, Option[][] options)
         {
-            int LongestMessageLength = 0;
+            int LongestMessageLength = message.Length;
             // messages and options has to be the same length
             for (int i = 0; i < messages.Length; i++)
             {
                 if (messages[i].Length > LongestMessageLength) LongestMessageLength = messages[i].Length;
 
+                if (LongestMessageLength > 116)
+                {
+                    LongestMessageLength = 116;
+                    break;
+                }
                 foreach (var opt in options[i])
                 {
                     if (opt.Label.Length + 2 > LongestMessageLength) LongestMessageLength = opt.Label.Length + 5;
+                    if (LongestMessageLength > 116) 
+                    {
+                        LongestMessageLength = 116;
+                        break;
+                    }
                 }
             }
 
             for (int i = 0; i < messages.Length; i++) 
             {
                 MessageBorder(LongestMessageLength);
-                Message(messages[i], LongestMessageLength);
-                Message("To choose an option enter then number infront of an option.", LongestMessageLength);
+                FormatMessage(message, LongestMessageLength, false);
+                FormatMessage(messages[i], LongestMessageLength, false);
+                FormatMessage("To choose an option enter then number infront of an option.", LongestMessageLength, false);
                 // show each option with it's number
                 for (int o = 0; o < options[i].Length; o++) 
                 {
                     var label = options[i][o].Label;
-                    Message(label + " " + (o > 9 ? ".  " : ". "), LongestMessageLength);
+                    FormatMessage((o + 1) + (o + 1 > 9 ? ".  " : ". ") + label, LongestMessageLength, false);
                 }
+                MessageBorder(LongestMessageLength);
                 // loop until user gives valid input, run the selected options function
                 bool validInput = false;
                 while (!validInput)
                 {
+                    Console.Write("Option: ");
                     if (int.TryParse(Console.ReadLine(), out int userInput))
                     {
-                        if (userInput >= 0 && userInput < options[i].Length)
+                        int input = userInput - 1;
+                        if (input >= 0 && input < options[i].Length)
                         {
-                            options[i][userInput].Action.Invoke();
+                            options[i][input].Action.Invoke();
                             validInput = true;
-                        }
-                    }
+                        } else { Console.WriteLine("Invalid input, please enter a number within the range."); }
+                    } else { Console.WriteLine("Invalid input, please enter a number."); }
                 }
             }
-
-            MessageBorder(LongestMessageLength);
         }
 
         private static void MessageBorder(int length)
@@ -64,14 +74,32 @@ namespace spotivy_app.spotivy
             Console.WriteLine("-+");
         }
 
-        private static void Message(string message, int length)
+        public static void FormatMessage(string message, int length, bool border)
         {
-            Console.Write("| " + message);
-            for (int i = 0; i < length - message.Length; i++)
+            if (border == true) MessageBorder(length);
+            for (int s = 0; s < message.Length;)
             {
-                Console.Write(" ");
+                int remaining = message.Length - s;
+                int lineLength = remaining > length ? length : remaining;
+                int end = s + lineLength;
+
+                if (remaining > length)
+                {
+                    int lastSpace = message.LastIndexOf(' ', end - 1, lineLength);
+                    if (lastSpace > s) end = lastSpace;
+                }
+
+                string line = message.Substring(s, end - s);
+                Console.Write("| " + line);
+                for (int i = 0; i < length - line.Length; i++)
+                {
+                    Console.Write(" ");
+                }
+                Console.WriteLine(" |");
+
+                s = end;
             }
-            Console.WriteLine(" |");
+            if (border == true) MessageBorder(length);
         }
     }
 }
