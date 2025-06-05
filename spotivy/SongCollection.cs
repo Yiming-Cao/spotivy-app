@@ -3,12 +3,11 @@
 public class SongCollection
 {
     public string Title { get; protected set; }
-    protected List<IPlayable> playables;
+    protected List<IPlayable> playables = new List<IPlayable>();
 
     public SongCollection(string title)
     {
         Title = title;
-        playables = new List<IPlayable>();
     }
 
     public virtual List<IPlayable> ShowPlayables()
@@ -18,6 +17,6 @@ public class SongCollection
 
     public override string ToString()
     {
-        return $"SongCollection: {Title}, Items: {playables.Count}";
+        return "SongCollection: " + Title + ", Items: " + playables.Count;
     }
 }
