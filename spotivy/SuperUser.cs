@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using spotivy_app.spotivy;
+
 public class SuperUser : Person
 {
     public SuperUser(string naam) : base(naam)
@@ -11,11 +11,11 @@ public class SuperUser : Person
     {
         if (person == null || Friends.Contains(person))
         {
-            Console.WriteLine("Cannot add friend: null or already in list.");
+            Messenger.SendMessage("Cannot add friend: null or already in list.");
             return;
         }
         Friends.Add(person);
-        Console.WriteLine($"{Naam} added {person.Naam} as a friend.");
+        Messenger.SendMessage($"{Naam} added {person.Naam} as a friend.");
     }
 
     
@@ -23,11 +23,11 @@ public class SuperUser : Person
     {
         if (Friends.Remove(person))
         {
-            Console.WriteLine($"{Naam} removed {person.Naam} from friends.");
+            Messenger.SendMessage($"{Naam} removed {person.Naam} from friends.");
         }
         else
         {
-            Console.WriteLine("Friend not found.");
+            Messenger.SendMessage("Friend not found.");
         }
     }
 
@@ -36,7 +36,7 @@ public class SuperUser : Person
     {
         Playlist newPlaylist = new Playlist(this, title);
         Playlists.Add(newPlaylist);
-        Console.WriteLine($"{Naam} created playlist: {title}");
+        Messenger.SendMessage($"{Naam} created playlist: {title}");
     }
 
     
@@ -44,12 +44,12 @@ public class SuperUser : Person
     {
         if (index >= 0 && index < Playlists.Count)
         {
-            Console.WriteLine($"{Naam} removed playlist: {Playlists[index].Title}");
+            Messenger.SendMessage($"{Naam} removed playlist: {Playlists[index].Title}");
             Playlists.RemoveAt(index);
         }
         else
         {
-            Console.WriteLine("Invalid playlist index.");
+            Messenger.SendMessage("Invalid playlist index.");
         }
     }
 

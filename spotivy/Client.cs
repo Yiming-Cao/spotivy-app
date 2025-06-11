@@ -29,11 +29,11 @@ public class Client
         if (person is SuperUser su)
         {
             ActiveUser = su;
-            Console.WriteLine($"Active user set to: {ActiveUser.Naam}");
+            Messenger.SendMessage($"Active user set to: {ActiveUser.Naam}");
         }
         else
         {
-            Console.WriteLine("Selected user is not a SuperUser.");
+            Messenger.SendMessage("Selected user is not a SuperUser.");
         }
     }
 
@@ -60,11 +60,8 @@ public class Client
 
     public void ShowAllUsers()
     {
-        Console.WriteLine("All Users:");
-        for (int i = 0; i < AllUsers.Count; i++)
-        {
-            Console.WriteLine($"{i}: {AllUsers[i].Naam}");
-        }
+        string userNames = string.Join("\n", AllUsers.Select(a => "- " + a.ToString()));
+        Messenger.SendMessage("All Users:\n"+userNames);
     }
 
     public void SelectUser(int index)
@@ -88,7 +85,7 @@ public class Client
         if (ActiveUser != null)
         {
             selectedPlaylist = ActiveUser.SelectPlaylist(index);
-            Console.WriteLine($"Selected Playlist: {selectedPlaylist?.Title}");
+            Messenger.SendMessage($"Selected Playlist: {selectedPlaylist?.Title}");
         }
     }
 
@@ -104,7 +101,7 @@ public class Client
         {
             Playing = false;
             CurrentlyPlaying.Pause();
-            Console.WriteLine("Paused.");
+            Messenger.SendMessage("Paused.");
         }
     }
 
@@ -115,7 +112,7 @@ public class Client
             Playing = false;
             CurrentTime = 0;
             CurrentlyPlaying.Stop();
-            Console.WriteLine("Stopped.");
+            Messenger.SendMessage("Stopped.");
         }
     }
 
@@ -127,13 +124,13 @@ public class Client
     public void SetShuffle(bool shuffle)
     {
         Shuffle = shuffle;
-        Console.WriteLine($"Shuffle: {Shuffle}");
+        Messenger.SendMessage($"Shuffle: {Shuffle}");
     }
 
     public void SetRepeat(bool repeat)
     {
         Repeat = repeat;
-        Console.WriteLine($"Repeat: {Repeat}");
+        Messenger.SendMessage($"Repeat: {Repeat}");
     }
 
     // Playlist Management
@@ -177,6 +174,7 @@ public class Client
     {
         if (ActiveUser != null)
         {
+            // ???
             foreach (var f in ActiveUser.ShowFriends())
             {
                 Console.WriteLine($"- {f.Naam}");
@@ -186,7 +184,7 @@ public class Client
 
     public void SelectFriend()
     {
-        Console.WriteLine("Friend selection by index not implemented in this class.");
+        Messenger.SendMessage("Friend selection by index not implemented in this class.");
     }
 
     public void AddFriend(int index)
