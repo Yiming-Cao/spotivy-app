@@ -2,14 +2,14 @@
 
 namespace spotivy_app.spotivy
 {
-    class Song : IPlayable
+    public class Song : IPlayable
     {
         public string Title { get; set; }
         public List<Artist> Artists { get; set; }
-        public Genre SongGenre { get; set; }
+        public Constants.Genre SongGenre { get; set; }
         public int Length { get; set; }
 
-        public Song(string title, List<Artist> artists, Genre genre, int length)
+        public Song(string title, List<Artist> artists, Constants.Genre genre, int length)
         {
             Title = title;
             Artists = artists;

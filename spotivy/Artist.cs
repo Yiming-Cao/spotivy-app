@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace spotivy_app.spotivy
 {
-    class Artist
+    public class Artist
     {
         public string Naam { get; set; }
         public List<Album> Albums { get; set; }

@@ -12,8 +12,8 @@ public class Client
 
     public SuperUser ActiveUser { get; private set; }
 
-    //public List<Album> AllAlbums { get; private set; }
-    //public List<Song> AllSongs { get; private set; }
+    public List<Album> AllAlbums { get; private set; }
+    public List<Song> AllSongs { get; private set; }
     public List<Person> AllUsers { get; private set; }
 
     private Random random;

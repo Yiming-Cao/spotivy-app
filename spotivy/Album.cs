@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace spotivy_app.spotivy
+﻿namespace spotivy_app.spotivy
 {
-    class Album : SongCollection
+    public class Album : SongCollection
     {
         public List<Artist> Artists { get; set; }
 

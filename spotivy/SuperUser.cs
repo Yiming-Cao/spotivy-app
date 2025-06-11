@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-public class SuperUser : Person
+﻿public class SuperUser : Person
 {
     public SuperUser(string naam) : base(naam)
     {

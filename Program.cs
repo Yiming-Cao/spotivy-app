@@ -21,7 +21,7 @@ namespace spotivy_app
         {
             Messenger.FormatMessage(
                 "     ____    " +
-                "    /    \\    " +
+                "    /    \\   " +
                 "   |    |    " +
                 "   |____|    ", 14, true);
         }
