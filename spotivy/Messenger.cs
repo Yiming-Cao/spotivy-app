@@ -12,7 +12,7 @@ namespace spotivy_app.spotivy
         public static void OptionBox(string message, Option[] options)
         {
             int MaxMessageLength = message.Length;
-
+            // find longest message and set maxMessageLength to it max is 116 (full length of console 1080p not fullscreen)
             foreach (var opt in options)
             {
                 if (opt.Label.Length + 2 > MaxMessageLength) MaxMessageLength = opt.Label.Length + 5;
@@ -62,30 +62,38 @@ namespace spotivy_app.spotivy
 
         public static void FormatMessage(string message, int length, bool border)
         {
-            if (border == true) MessageBorder(length);
-            for (int s = 0; s < message.Length;)
+            if (length > 116) length = 116;
+            if (border) MessageBorder(length);
+            var lines = new List<string>();
+            // split the messages at \n so that starts a new line
+            var messages = message.Split('\n');
+            foreach (var msg in messages)
             {
-                int remaining = message.Length - s;
-                int lineLength = remaining > length ? length : remaining;
-                int end = s + lineLength;
-
-                if (remaining > length)
+                // split the message to multiple strings of the max length
+                if (msg.Length > length)
                 {
-                    int lastSpace = message.LastIndexOf(' ', end - 1, lineLength);
-                    if (lastSpace > s) end = lastSpace;
+                    lines.AddRange(SplitByLength(msg, length));
                 }
-
-                string line = message.Substring(s, end - s);
-                Console.Write("| " + line);
-                for (int i = 0; i < length - line.Length; i++)
-                {
-                    Console.Write(" ");
-                }
-                Console.WriteLine(" |");
-
-                s = end;
+                else lines.Add(msg);
             }
-            if (border == true) MessageBorder(length);
+
+            foreach (var line in lines)
+            {
+                Console.WriteLine("| " + line + new string(' ', length - line.Length) + " |");
+            }
+
+            if (border) MessageBorder(length);
         }
+
+        public static List<string> SplitByLength(string input, int length)
+        {
+            var strings = new List<string>();
+            for (int i = 0; i < input.Length; i += length)
+            {
+                strings.Add(input.Substring(i, Math.Min(length, input.Length - i)));
+            }
+            return strings;
+        }
+
     }
 }

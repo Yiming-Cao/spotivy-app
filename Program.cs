@@ -9,7 +9,7 @@ namespace spotivy_app
             Console.WriteLine("Hello, World!");
             Messenger Messanger = new Messenger();
             Messenger.SendMessage("Welcome to Spotivy! This is a simple app to play music, built with C#!");
-            Messenger.FormatMessage("aaaaaaaaaaaaaaaaaaaaaaam                     f", 8, true);
+            Messenger.FormatMessage("aaaaaaaaaaaaa\naaaaaaaaaam\n\n\n\nf", 8, true);
             Messenger.OptionBox("Test", [new Option{ Label = "Hello", Action = Hello }, new Option{ Label = "House", Action = House }]);
         }
 
