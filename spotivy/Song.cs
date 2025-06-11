@@ -41,5 +41,10 @@ namespace spotivy_app.spotivy
         {
             Console.WriteLine($"Stopped song:" + Title);
         }
+
+        public override string ToString()
+        {
+            return Title;
+        }
     }
 }

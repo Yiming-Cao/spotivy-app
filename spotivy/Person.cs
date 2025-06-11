@@ -46,6 +46,6 @@ public class Person
 
     public override string ToString()
     {
-        return $"Person: {Naam}, Friends: {Friends.Count}, Playlists: {Playlists.Count}";
+        return Naam;
     }
 }

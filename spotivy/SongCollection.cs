@@ -17,6 +17,6 @@ public class SongCollection
 
     public override string ToString()
     {
-        return "SongCollection: " + Title + ", Items: " + playables.Count;
+        return Title;
     }
 }
