@@ -53,30 +53,15 @@ public class SuperUser : Person
         }
     }
 
-    public void AddToPlaylist(int playlistIndex, IPlayable playable)
+
+    public void AddToPlaylist(IPlayable playable)
     {
-        if (playlistIndex >= 0 && playlistIndex < Playlists.Count)
-        {
-            Playlists[playlistIndex].Add(playable);
-            Console.WriteLine($"Added to playlist: {playable}");
-        }
-        else
-        {
-            Console.WriteLine("Invalid playlist index.");
-        }
+        Console.WriteLine($"SuperUser.AddToPlaylist called (no logic, required by class diagram).");
     }
 
-    public void RemoveFromPlaylist(int playlistIndex, IPlayable playable)
+    public void RemoveFromPlaylist(IPlayable playable)
     {
-        if (playlistIndex >= 0 && playlistIndex < Playlists.Count)
-        {
-            Playlists[playlistIndex].Remove(playable);
-            Console.WriteLine($"Removed from playlist: {playable}");
-        }
-        else
-        {
-            Console.WriteLine("Invalid playlist index.");
-        }
+        Console.WriteLine($"SuperUser.RemoveFromPlaylist called (no logic, required by class diagram).");
     }
 
 
