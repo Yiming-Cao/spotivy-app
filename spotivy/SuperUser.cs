@@ -63,6 +63,4 @@ public class SuperUser : Person
     {
         Console.WriteLine($"SuperUser.RemoveFromPlaylist called (no logic, required by class diagram).");
     }
-
-
 }

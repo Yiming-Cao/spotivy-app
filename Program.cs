@@ -1,4 +1,5 @@
 ﻿using spotivy_app.spotivy;
+using static spotivy_app.spotivy.Constants;
 
 namespace spotivy_app
 {
@@ -28,6 +29,17 @@ namespace spotivy_app
                 .ToArray();
 
             Messenger.OptionBox("Login", options);
+
+            Song TestSong = new Song(
+               "Test Song",
+               new List<Artist>
+               {
+                    new Artist("Test Artist", new List<Album>())
+               },
+               Genre.Pop,
+               180
+           );
+            TestSong.Play();
         }
 
 

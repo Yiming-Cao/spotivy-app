@@ -19,8 +19,42 @@ namespace spotivy_app.spotivy
 
         public void Play()
         {
-            string artistNames = string.Join("\n", Artists.Select(a => "- "+a.ToString()));
-            Messenger.SendMessage("Playing song: " + Title + "\n By:\n"+ artistNames+ "\nGenre: "+Genre);
+            CancellationTokenSource CancellationToken = new();
+            bool playing = true;
+            Task animationTask = Task.Run(async () =>
+            {
+                string[] animation = { "..  ", " .. ", "  ..", ".  ." };
+                string artistNames = string.Join("\n", Artists.Select(a => "- " + a.ToString()));
+                Messenger.SendMessage($"Playing song: {Title}\nBy:\n{artistNames}\nGenre: {Genre}");
+                for(int i = 0; i <= Length*4; i++)
+                {
+                    Console.Write($"\r{animation[i % animation.Length]} - {TimeFormatter.FormatTime(i / 4)}");
+                    await Task.Delay(250, CancellationToken.Token);
+                }
+
+                CancellationToken.Cancel();
+                playing = false;
+                Console.WriteLine("");
+                Messenger.SendMessage($"Finished playing song: {Title}");
+            }, CancellationToken.Token);
+
+            while (playing)
+            {
+                string? input = Console.ReadLine();
+                Console.SetCursorPosition(0, Console.CursorTop-1);
+                if (input?.ToLower() == "skip")
+                {
+                    CancellationToken.Cancel();
+                    Next();
+                    break;
+                }
+                else if (input?.ToLower() == "stop")
+                {
+                    CancellationToken.Cancel();
+                    Stop();
+                    break;
+                }
+            }
         }
         public void Pause()
         {
