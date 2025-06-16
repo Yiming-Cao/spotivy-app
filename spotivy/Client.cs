@@ -235,7 +235,6 @@ public class Client
         ActiveUser?.RemovePlaylist(index);
     }
 
-    // 关键点：AddToPlaylist 需要传入playlistIndex和songIndex，因为Client没有存selectedPlaylist字段
     public void AddToPlaylist(int playlistIndex, int songIndex)
     {
         if (ActiveUser == null)
@@ -259,7 +258,6 @@ public class Client
 
         IPlayable song = AllSongs[songIndex];
 
-        // 调用SuperUser的AddToPlaylist(IPlayable)方法
         ActiveUser.AddToPlaylist(song);
         string title = "(unknown title)";
         if (song is Song s)
@@ -270,7 +268,6 @@ public class Client
         Console.WriteLine($"Added song {title} to playlist {playlist.Title}");
     }
 
-    // 显示播放列表里的歌曲
     public void ShowSongsInPlaylist(int playlistIndex)
     {
         if (ActiveUser == null)
