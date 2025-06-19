@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using spotivy_app.spotivy;
 
 public class SongCollection : IPlayable
 {
     public string Title { get; protected set; }
     protected List<IPlayable> playables = new List<IPlayable>();
+    protected IPlayable CurrentSong;
 
     public SongCollection(string title)
     {
         Title = title;
+        CurrentSong = playables.FirstOrDefault();
     }
 
     public virtual List<IPlayable> ShowPlayables()
@@ -17,26 +19,33 @@ public class SongCollection : IPlayable
 
     public virtual void Play()
     {
-        Console.WriteLine($"Playing collection: {Title}");
-        foreach (var playable in playables)
-        {
-            playable.Play();
-        }
+        CurrentSong?.Play();
     }
 
     public virtual void Pause()
     {
-        Console.WriteLine($"Paused collection: {Title}");
+        CurrentSong?.Pause();
     }
 
     public virtual void Stop()
     {
-        Console.WriteLine($"Stopped collection: {Title}");
+        CurrentSong?.Stop();
     }
 
     public void Next()
     {
-        Console.WriteLine($"Skipping to the next item in collection: {Title}");
+        CurrentSong?.Next();
+        playables.Remove(CurrentSong);
+
+        if (playables.Count > 0)
+        {
+            CurrentSong = playables.FirstOrDefault();
+        }
+        else
+        {
+            CurrentSong = null;
+            Messenger.SendMessage("All songs played");
+        }
     }
 
     public int Length

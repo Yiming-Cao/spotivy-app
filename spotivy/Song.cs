@@ -52,7 +52,7 @@ namespace spotivy_app.spotivy
         public void Pause()
         {
             Paused = true;
-            Console.WriteLine("");
+            Console.Write("\r \r");
             Messenger.SendMessage($"Paused song: " + Title);
         }
         public void Continue()
@@ -63,7 +63,7 @@ namespace spotivy_app.spotivy
         public void Next()
         {
             Playing = false;
-            Console.WriteLine("");
+            Console.Write("\r \r");
             Messenger.SendMessage("Skipping to next song.");
         }
         public void Stop()

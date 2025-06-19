@@ -9,7 +9,7 @@ namespace spotivy_app
         static Client client;
         static async Task Main(string[] args)
         {
-            List<Person> users = new List<Person>() { { new Person("Thomas")}, { new Person("Yiming") }, { new Person("Robert") } };
+            List<Person> users = new List<Person>() { { new Person("Thomas") }, { new Person("Yiming") }, { new Person("Robert") } };
             List<Album> albums = new List<Album>();
             List<Song> songs = new List<Song>();
 
@@ -31,13 +31,64 @@ namespace spotivy_app
                Genre.Pop,
                120
             );
-            TestSong.Play();
-            await Task.Delay(11000);
-            TestSong.Pause();
-            await Task.Delay(6000);
-            TestSong.Continue();
-            await Task.Delay(4000);
-            TestSong.Stop();
+            //TestSong.Play();
+            //await Task.Delay(11000);
+            //TestSong.Pause();
+            //await Task.Delay(6000);
+            //TestSong.Continue();
+            //await Task.Delay(4000);
+            //TestSong.Stop();
+            //await Task.Delay(4000);
+
+            albums.Add(new Album
+            (
+               new List<Artist>
+                  {
+                  new Artist("noob", new List<Album>())
+                      {
+                          Songs = new List<Song>
+                          {
+                              new Song(
+                                  "Test Song",
+                                  new List<Artist>
+                                  {
+                                      new Artist("Test Artist", new List<Album>())
+                                  },
+                                  Genre.Pop,
+                                  120
+                              )
+                          }
+                      }
+                  },
+                  "Test Album",
+                  new List<Song>
+                  {
+                      new Song(
+                          "Test Song",
+                          new List<Artist>
+                          {
+                              new Artist("Test Artist", new List<Album>())
+                          },
+                          Genre.Pop,
+                          120
+                      ),
+                      new Song(
+                          "Noob Song",
+                          new List<Artist>
+                          {
+                              new Artist("Test Artist", new List<Album>())
+                          },
+                          Genre.Pop,
+                          110
+                      )
+                  }
+               ));
+            albums[0].Play();
+
+            await Task.Delay(10000);
+            albums[0].Next();
+            albums[0].Play();
+            await Task.Delay(30000);
         }
 
         public static void Login(Person user)
