@@ -1,4 +1,5 @@
 ﻿using spotivy_app.spotivy;
+using static spotivy_app.spotivy.Constants;
 
 namespace spotivy_app
 {
@@ -17,9 +18,22 @@ namespace spotivy_app
                 new Person("Robert")
             };
 
-            List<Song> songs = new List<Song>();
+            var artist1 = new Artist("Ed Sheeran", new List<Album>());
+            var artist2 = new Artist("The Weeknd", new List<Album>());
+            var artist3 = new Artist("Adele", new List<Album>());
 
-            List<Album> albums = new List<Album>();
+            List<Song> songs = new List<Song>()
+            {
+                new Song("Shape of You", new List<Artist> { artist1 }, Genre.Pop, 3),
+                new Song("Blinding Lights", new List<Artist> { artist2 }, Genre.Pop, 4),
+                new Song("Someone Like You", new List<Artist> { artist3 }, Genre.Pop, 5)
+            };
+
+                        List<Album> albums = new List<Album>()
+            {
+                new Album(new List<Artist> { artist1, artist2 }, "Top Hits", new List<Song> { songs[0], songs[1] }),
+                new Album(new List<Artist> { artist3 }, "Emotional", new List<Song> { songs[2] })
+            };
 
             client = new Client(users, albums, songs);
 
@@ -51,6 +65,17 @@ namespace spotivy_app
             client.ActiveUser.ShowFriends();
             client.ActiveUser.ShowPlaylists();
             ShowMainMenu();
+        }
+
+        public static void ShowListWithIndex<T>(List<T> list, string header = null)
+        {
+            if (!string.IsNullOrEmpty(header))
+                Messenger.SendMessage(header);
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                Messenger.SendMessage($"{i}. {list[i]}");
+            }
         }
 
 
@@ -87,8 +112,9 @@ namespace spotivy_app
                 switch (input)
                 {
                     case "1":
-                        client.ShowAllUsers();
+                        ShowListWithIndex(client.AllUsers, "All users:");
                         Messenger.SendMessage("Enter the number of the friend to add:");
+
                         if (int.TryParse(Console.ReadLine(), out int friendIndex))
                         {
                             if (friendIndex >= 0 && friendIndex < client.AllUsers.Count)
@@ -112,8 +138,9 @@ namespace spotivy_app
                         break;
 
                     case "2":
-                        client.ActiveUser.ShowFriends();
+                        ShowListWithIndex(superUser.Friends, "Your friends:");
                         Messenger.SendMessage("Enter the number of the friend to remove:");
+
                         if (int.TryParse(Console.ReadLine(), out int removeIndex))
                         {
                             if (removeIndex >= 0 && removeIndex < superUser.Friends.Count)
@@ -131,7 +158,7 @@ namespace spotivy_app
                         break;
 
                     case "4":
-                        superUser.ShowPlaylists();
+                        ShowListWithIndex(superUser.Playlists, "Your playlists:");
                         Messenger.SendMessage("Enter the number of the playlist to remove:");
                         if (int.TryParse(Console.ReadLine(), out int playlistIndex))
                         {
@@ -144,13 +171,14 @@ namespace spotivy_app
                         break;
 
                     case "5":
-                        superUser.ShowPlaylists();
+                        ShowListWithIndex(superUser.Playlists, "Your playlists:");
                         Messenger.SendMessage("Enter the number of the playlist:");
+
                         if (int.TryParse(Console.ReadLine(), out int plIndex))
                         {
                             if (plIndex >= 0 && plIndex < superUser.Playlists.Count)
                             {
-                                client.ShowAllSongs();
+                                ShowListWithIndex(client.AllSongs, "All songs:");
                                 Messenger.SendMessage("Enter the number of the song to add:");
                                 if (int.TryParse(Console.ReadLine(), out int songIndex))
                                 {
@@ -165,7 +193,7 @@ namespace spotivy_app
                         break;
 
                     case "6":
-                        superUser.ShowPlaylists();
+                        ShowListWithIndex(superUser.Playlists, "Your playlists:");
                         Messenger.SendMessage("Enter the number of the playlist:");
                         if (int.TryParse(Console.ReadLine(), out int plIdx))
                         {
@@ -173,6 +201,7 @@ namespace spotivy_app
                             {
                                 var playlist = superUser.Playlists[plIdx];
                                 var playables = playlist.ShowPlayables();
+                                ShowListWithIndex(playables, $"Songs in playlist \"{playlist.Title}\":");
                                 Messenger.SendMessage("Enter the number of the song to remove:");
                                 if (int.TryParse(Console.ReadLine(), out int songIdx))
                                 {

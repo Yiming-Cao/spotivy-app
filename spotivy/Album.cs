@@ -7,6 +7,11 @@
         public Album(List<Artist> artists, string title, List<Song> songs) : base(title)
         {
             Artists = artists;
+
+            foreach (var song in songs)
+            {
+                playables.Add(song);
+            }
         }
 
         public List<Artist> ShowArtists()
