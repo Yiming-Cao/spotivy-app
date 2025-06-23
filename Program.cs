@@ -16,29 +16,11 @@ namespace spotivy_app
             client = new Client(users, albums, songs);
 
             Messenger.SendMessage("Welcome to Spotivy! This is a simple app to play music, built with C#!");
-            var options = users
+            var loginOptions = users
                 .Select(su => new Option { Label = su.Naam, Action = () => Login(su) })
                 .ToArray();
 
-            Messenger.OptionBox("Login", options, false);
-
-            Song TestSong = new Song(
-               "Test Song",
-               new List<Artist>
-               {
-                        new Artist("Test Artist", new List<Album>())
-               },
-               Genre.Pop,
-               120
-            );
-            //TestSong.Play();
-            //await Task.Delay(11000);
-            //TestSong.Pause();
-            //await Task.Delay(6000);
-            //TestSong.Continue();
-            //await Task.Delay(4000);
-            //TestSong.Stop();
-            //await Task.Delay(4000);
+            Messenger.OptionBox("Login", loginOptions, true);
 
             albums.Add(new Album
             (
@@ -83,12 +65,15 @@ namespace spotivy_app
                       )
                   }
                ));
-            albums[0].Play();
+
+            client.SelectAlbum(0);
+            client.Play();
 
             await Task.Delay(10000);
-            albums[0].Next();
-            albums[0].Play();
-            await Task.Delay(30000);
+
+            client.NextSong();
+            client.Play();
+            await Task.Delay(110000);
         }
 
         public static void Login(Person user)

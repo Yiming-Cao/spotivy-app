@@ -29,7 +29,7 @@ namespace spotivy_app.spotivy
                 string artistNames = string.Join("\n", Artists.Select(a => "- " + a.ToString()));
                 Console.WriteLine("");
                 Messenger.SendMessage($"Playing song: {Title}\nBy:\n{artistNames}\nGenre: {Genre}");
-                for (int i = 0;  i <= Length * 4; i++)
+                for (int i = 0; i <= Length * 4; i++)
                 {
                     if (!Playing)
                         break;
@@ -68,6 +68,7 @@ namespace spotivy_app.spotivy
         }
         public void Stop()
         {
+            if (!Playing) return;
             Playing = false;
             Console.WriteLine("");
             Messenger.SendMessage($"Stopped song:" + Title);
