@@ -5,26 +5,47 @@ namespace spotivy_app
     internal class Program
     {
         static Client client;
+        static Dictionary<string, SuperUser> userCache = new Dictionary<string, SuperUser>();
+
+
         static void Main(string[] args)
         {
-            List<Person> users = new List<Person>() { { new Person("Thomas") }, { new Person("Yiming") }, { new Person("Robert") } };
-            List<Album> albums = new List<Album>();
+            List<Person> users = new List<Person>() 
+            {
+                new Person("Thomas"),
+                new Person("Yiming"),
+                new Person("Robert")
+            };
+
             List<Song> songs = new List<Song>();
+
+            List<Album> albums = new List<Album>();
 
             client = new Client(users, albums, songs);
 
             Messenger.SendMessage("Welcome to Spotivy! This is a simple app to play music, built with C#!");
+
             var options = users
                 .Select(su => new Option { Label = su.Naam, Action = () => Login(su) })
                 .ToArray();
 
             Messenger.OptionBox("Login", options);
-            
         }
 
         public static void Login(Person user)
         {
-            SuperUser superUser = new SuperUser(user.Naam);
+            SuperUser superUser;
+
+            if (!userCache.ContainsKey(user.Naam))
+            {
+                superUser = new SuperUser(user.Naam);
+                userCache[user.Naam] = superUser;
+            }
+            else
+            {
+                superUser = userCache[user.Naam];
+            }
+
             client.SetActiveUser(superUser);
             Messenger.SendMessage($"Already logged in as: {client.ActiveUser.Naam}");
             client.ActiveUser.ShowFriends();
@@ -32,113 +53,144 @@ namespace spotivy_app
             ShowMainMenu();
         }
 
+
         static void ShowMainMenu()
         {
             while (true)
             {
                 Messenger.SendMessage(
-                    "Option:\n" +
+                    "\nOptions:\n" +
                     "1. Add friends\n" +
                     "2. Remove friends\n" +
                     "3. Create playlist\n" +
                     "4. Remove playlist\n" +
                     "5. Add music to playlist\n" +
                     "6. Remove music from playlist\n" +
-                    "0. quit"
+                    "0. Logout"
                 );
-                string input = Console.ReadLine();
 
-                if (input == "0") break;
+                string input = Console.ReadLine();
+                if (input == "0")
+                {
+                    Messenger.SendMessage("Logged out.");
+                    Main(null); // 返回登录界面
+                    return;
+                }
 
                 var superUser = client.ActiveUser as SuperUser;
                 if (superUser == null)
                 {
-                    Messenger.SendMessage("You are not superuser");
+                    Messenger.SendMessage("You are not a superuser.");
                     return;
                 }
 
                 switch (input)
                 {
                     case "1":
-                        // 添加好友
                         client.ShowAllUsers();
-                        Messenger.SendMessage("Write the number of friend that you want add");
+                        Messenger.SendMessage("Enter the number of the friend to add:");
                         if (int.TryParse(Console.ReadLine(), out int friendIndex))
                         {
                             if (friendIndex >= 0 && friendIndex < client.AllUsers.Count)
-                                superUser.AddFriend(client.AllUsers[friendIndex]);
-                        }
-                        break;
-                    case "2":
-                        // 移除好友
-                        client.ShowFriends();
-                        Messenger.SendMessage("Write the number of friend that you want remove：");
-                        if (int.TryParse(Console.ReadLine(), out int removeIndex))
-                        {
-                            if (removeIndex >= 0 && removeIndex < superUser.Friends.Count)
-                                superUser.RemoveFriend(superUser.Friends[removeIndex]);
-                        }
-                        break;
-                    case "3":
-                        // 创建歌单
-                        Messenger.SendMessage("Write the name of playlist that you want create：");
-                        string title = Console.ReadLine();
-                        superUser.CreatePlaylist(title);
-                        break;
-                    case "4":
-                        // 移除歌单
-                        superUser.ShowPlaylists();
-                        Messenger.SendMessage("Write the name of playlist that you want remove：");
-                        if (int.TryParse(Console.ReadLine(), out int playlistIndex))
-                        {
-                            superUser.RemovePlaylist(playlistIndex);
-                        }
-                        break;
-                    case "5":
-                        // 添加歌曲到歌单
-                        superUser.ShowPlaylists();
-                        Messenger.SendMessage("Write the number of playlist：");
-                        if (int.TryParse(Console.ReadLine(), out int plIndex))
-                        {
-                            client.ShowAllSongs();
-                            Messenger.SendMessage("Write the number of song：");
-                            if (int.TryParse(Console.ReadLine(), out int songIndex))
                             {
-                                if (plIndex >= 0 && plIndex < superUser.Playlists.Count &&
-                                    songIndex >= 0 && songIndex < client.AllSongs.Count)
+                                var selected = client.AllUsers[friendIndex];
+                                if (selected.Naam == superUser.Naam)
                                 {
-                                    superUser.Playlists[plIndex].Add(client.AllSongs[songIndex]);
+                                    Messenger.SendMessage("Cannot add yourself.");
+                                }
+                                else if (superUser.Friends.Contains(selected))
+                                {
+                                    Messenger.SendMessage("Friend already added.");
+                                }
+                                else
+                                {
+                                    superUser.AddFriend(selected);
+                                    Messenger.SendMessage("Friend added.");
                                 }
                             }
                         }
                         break;
-                    case "6":
-                        // 从歌单移除歌曲
+
+                    case "2":
+                        client.ActiveUser.ShowFriends();
+                        Messenger.SendMessage("Enter the number of the friend to remove:");
+                        if (int.TryParse(Console.ReadLine(), out int removeIndex))
+                        {
+                            if (removeIndex >= 0 && removeIndex < superUser.Friends.Count)
+                            {
+                                superUser.RemoveFriend(superUser.Friends[removeIndex]);
+                                Messenger.SendMessage("Friend removed.");
+                            }
+                        }
+                        break;
+
+                    case "3":
+                        Messenger.SendMessage("Enter a name for the new playlist:");
+                        string title = Console.ReadLine();
+                        superUser.CreatePlaylist(title);
+                        break;
+
+                    case "4":
                         superUser.ShowPlaylists();
-                        Messenger.SendMessage("Write the number of playlist：");
+                        Messenger.SendMessage("Enter the number of the playlist to remove:");
+                        if (int.TryParse(Console.ReadLine(), out int playlistIndex))
+                        {
+                            if (playlistIndex >= 0 && playlistIndex < superUser.Playlists.Count)
+                            {
+                                superUser.RemovePlaylist(playlistIndex);
+                                Messenger.SendMessage("Playlist removed.");
+                            }
+                        }
+                        break;
+
+                    case "5":
+                        superUser.ShowPlaylists();
+                        Messenger.SendMessage("Enter the number of the playlist:");
+                        if (int.TryParse(Console.ReadLine(), out int plIndex))
+                        {
+                            if (plIndex >= 0 && plIndex < superUser.Playlists.Count)
+                            {
+                                client.ShowAllSongs();
+                                Messenger.SendMessage("Enter the number of the song to add:");
+                                if (int.TryParse(Console.ReadLine(), out int songIndex))
+                                {
+                                    if (songIndex >= 0 && songIndex < client.AllSongs.Count)
+                                    {
+                                        superUser.Playlists[plIndex].Add(client.AllSongs[songIndex]);
+                                        Messenger.SendMessage("Song added to playlist.");
+                                    }
+                                }
+                            }
+                        }
+                        break;
+
+                    case "6":
+                        superUser.ShowPlaylists();
+                        Messenger.SendMessage("Enter the number of the playlist:");
                         if (int.TryParse(Console.ReadLine(), out int plIdx))
                         {
                             if (plIdx >= 0 && plIdx < superUser.Playlists.Count)
                             {
                                 var playlist = superUser.Playlists[plIdx];
                                 var playables = playlist.ShowPlayables();
-                                Messenger.SendMessage("Write the number of song that you want remove：");
+                                Messenger.SendMessage("Enter the number of the song to remove:");
                                 if (int.TryParse(Console.ReadLine(), out int songIdx))
                                 {
                                     if (songIdx >= 0 && songIdx < playables.Count)
+                                    {
                                         playlist.Remove(playables[songIdx]);
+                                        Messenger.SendMessage("Song removed from playlist.");
+                                    }
                                 }
                             }
                         }
                         break;
+
                     default:
-                        Messenger.SendMessage("Wrong Chose, try again");
+                        Messenger.SendMessage("Wrong choice, try again.");
                         break;
                 }
             }
         }
-
-
-
     }
 }
