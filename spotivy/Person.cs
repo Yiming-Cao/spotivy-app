@@ -1,4 +1,5 @@
-﻿using System;
+﻿using spotivy_app.spotivy;
+using System;
 using System.Collections.Generic;
 
 public class Person
@@ -16,21 +17,15 @@ public class Person
 
     public List<Person> ShowFriends()
     {
-        Console.WriteLine($"{Naam}'s Friends:");
-        foreach (var friend in Friends)
-        {
-            Console.WriteLine($"- {friend.Naam}");
-        }
+        string friendNames = string.Join("\n", Friends.Select(a => "- " + a.ToString()));
+        Messenger.SendMessage($"{Naam}'s Friends:\n"+friendNames);
         return Friends;
     }
 
     public List<Playlist> ShowPlaylists()
     {
-        Console.WriteLine($"{Naam}'s Playlists:");
-        foreach (var playlist in Playlists)
-        {
-            Console.WriteLine($"- {playlist.Title}");
-        }
+        string playlistNames = string.Join("\n", Playlists.Select(a => "- " + a.ToString()));
+        Messenger.SendMessage($"{Naam}'s Playlists:\n"+playlistNames);
         return Playlists;
     }
 
@@ -40,12 +35,12 @@ public class Person
         {
             return Playlists[index];
         }
-        Console.WriteLine("Invalid playlist index.");
+        Messenger.SendMessage("Invalid playlist index.");
         return null;
     }
 
     public override string ToString()
     {
-        return $"Person: {Naam}, Friends: {Friends.Count}, Playlists: {Playlists.Count}";
+        return Naam;
     }
 }

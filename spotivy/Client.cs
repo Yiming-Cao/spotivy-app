@@ -12,16 +12,15 @@ public class Client
 
     public SuperUser ActiveUser { get; private set; }
 
-    //public List<Album> AllAlbums { get; private set; }
-    //public List<Song> AllSongs { get; private set; }
+    public List<Album> AllAlbums { get; private set; }
+    public List<Song> AllSongs { get; private set; }
     public List<Person> AllUsers { get; private set; }
-
-    private Random random;
-    private Playlist selectedPlaylist;
 
     public Client(List<Person> users, List<Album> albums, List<Song> songs)
     {
-        
+        AllUsers = users;
+        AllAlbums = albums;
+        AllSongs = songs;
     }
 
     public void SetActiveUser(Person person)
@@ -37,25 +36,40 @@ public class Client
         }
     }
 
-    // Album and Song Management
     public void ShowAllAlbums()
     {
-        
+        Console.WriteLine("All Albums:");
+        for (int i = 0; i < AllAlbums.Count; i++)
+        {
+            Console.WriteLine($"{i}: {AllAlbums[i].ToString()}");
+        }
     }
 
     public void SelectAlbum(int index)
     {
-        
+        if (index >= 0 && index < AllAlbums.Count)
+        {
+            CurrentlyPlaying = AllAlbums[index];
+            Console.WriteLine($"Selected Album: {AllAlbums[index].Title}");
+        }
     }
 
     public void ShowAllSongs()
     {
-        
+        Console.WriteLine("All Songs:");
+        foreach (var song in AllSongs)
+        {
+            Console.WriteLine($"- {song.Title}");
+        }
     }
 
     public void SelectSong(int index)
     {
-        
+        if (index >= 0 && index < AllSongs.Count)
+        {
+            CurrentlyPlaying = AllSongs[index];
+            Console.WriteLine($"Selected Song: {AllSongs[index].Title}");
+        }
     }
 
     public void ShowAllUsers()
@@ -87,15 +101,37 @@ public class Client
     {
         if (ActiveUser != null)
         {
-            selectedPlaylist = ActiveUser.SelectPlaylist(index);
-            Console.WriteLine($"Selected Playlist: {selectedPlaylist?.Title}");
+            var playlist = ActiveUser.SelectPlaylist(index);
+            if (playlist != null)
+            {
+                Console.WriteLine($"Selected Playlist: {playlist.Title}");
+            }
+            else
+            {
+                Console.WriteLine("Invalid playlist index.");
+            }
         }
     }
 
-    // Playback Controls
     public void Play()
     {
-        
+        if (CurrentlyPlaying != null)
+        {
+            Playing = true;
+
+            string title = "Unknown";
+            if (CurrentlyPlaying is Album album)
+            {
+                title = album.Title;
+            }
+            else if (CurrentlyPlaying is Song song)
+            {
+                title = song.Title;
+            }
+
+            Console.WriteLine($"Playing: {title}");
+            CurrentlyPlaying.Play();
+        }
     }
 
     public void Pause()
@@ -121,8 +157,40 @@ public class Client
 
     public void NextSong()
     {
-        
+        if (ActiveUser != null)
+        {
+            // Fix: Provide an index argument to SelectPlaylist
+            Playlist currentPlaylist = ActiveUser.SelectPlaylist(0); // Assuming index 0 for demonstration
+            if (currentPlaylist != null)
+            {
+                var list = currentPlaylist.ShowPlayables(); // Get playable items
+                if (list.Count == 0) return;
+
+                int index = list.IndexOf(CurrentlyPlaying);
+                int nextIndex = (index + 1) % list.Count;
+
+                if (Shuffle)
+                {
+                    Random random = new Random(); // Ensure Random is instantiated
+                    nextIndex = random.Next(list.Count); // Shuffle playback
+                }
+
+                CurrentlyPlaying = list[nextIndex];
+
+                string title = CurrentlyPlaying is Song song ? song.Title :
+                               CurrentlyPlaying is Album album ? album.Title : "Unknown";
+
+                Console.WriteLine($"Next: {title}");
+                Play(); // Play the next item
+            }
+            else
+            {
+                Console.WriteLine("No playlist selected.");
+            }
+        }
     }
+
+
 
     public void SetShuffle(bool shuffle)
     {
@@ -136,7 +204,6 @@ public class Client
         Console.WriteLine($"Repeat: {Repeat}");
     }
 
-    // Playlist Management
     public void CreatePlaylist(string title)
     {
         ActiveUser?.CreatePlaylist(title);
@@ -149,7 +216,18 @@ public class Client
 
     public void SelectPlaylist(int index)
     {
-        selectedPlaylist = ActiveUser?.SelectPlaylist(index);
+        if (ActiveUser != null)
+        {
+            var playlist = ActiveUser.SelectPlaylist(index);
+            if (playlist != null)
+            {
+                Console.WriteLine($"Selected playlist: {playlist.Title}");
+            }
+            else
+            {
+                Console.WriteLine("Invalid playlist index.");
+            }
+        }
     }
 
     public void RemovePlaylist(int index)
@@ -157,22 +235,89 @@ public class Client
         ActiveUser?.RemovePlaylist(index);
     }
 
-    public void AddToPlaylist(int songIndex)
+    public void AddToPlaylist(int playlistIndex, int songIndex)
     {
-        
+        if (ActiveUser == null)
+        {
+            Console.WriteLine("No active user.");
+            return;
+        }
+
+        var playlist = ActiveUser.SelectPlaylist(playlistIndex);
+        if (playlist == null)
+        {
+            Console.WriteLine("Invalid playlist index.");
+            return;
+        }
+
+        if (songIndex < 0 || songIndex >= AllSongs.Count)
+        {
+            Console.WriteLine("Invalid song index.");
+            return;
+        }
+
+        IPlayable song = AllSongs[songIndex];
+
+        ActiveUser.AddToPlaylist(song);
+        string title = "(unknown title)";
+        if (song is Song s)
+        {
+            title = s.Title;
+        }
+
+        Console.WriteLine($"Added song {title} to playlist {playlist.Title}");
     }
 
-    public void ShowSongsInPlaylist()
+    public void ShowSongsInPlaylist(int playlistIndex)
     {
-        
+        if (ActiveUser == null)
+        {
+            Console.WriteLine("No active user.");
+            return;
+        }
+
+        var playlist = ActiveUser.SelectPlaylist(playlistIndex);
+        if (playlist == null)
+        {
+            Console.WriteLine("Invalid playlist index.");
+            return;
+        }
+
+        Console.WriteLine($"Songs in playlist {playlist.Title}:");
+        foreach (var playable in playlist.ShowPlayables())
+        {
+            Console.WriteLine($"- {playable}");
+        }
     }
 
-    public void RemoveFromPlaylist(int songIndex)
+    public void RemoveFromPlaylist(int playlistIndex, int songIndex)
     {
-        
+        if (ActiveUser == null)
+        {
+            Console.WriteLine("No active user.");
+            return;
+        }
+
+        var playlist = ActiveUser.SelectPlaylist(playlistIndex);
+        if (playlist == null)
+        {
+            Console.WriteLine("Invalid playlist index.");
+            return;
+        }
+
+        var playables = playlist.ShowPlayables();
+        if (songIndex < 0 || songIndex >= playables.Count)
+        {
+            Console.WriteLine("Invalid song index.");
+            return;
+        }
+
+        IPlayable playable = playables[songIndex];
+        playlist.Remove(playable);
+        ActiveUser.RemoveFromPlaylist(playable);
+        Console.WriteLine($"Removed {playable} from playlist {playlist.Title}");
     }
 
-    // Friend Management
     public void ShowFriends()
     {
         if (ActiveUser != null)
@@ -184,9 +329,9 @@ public class Client
         }
     }
 
-    public void SelectFriend()
+    public void SelectFriend(int index)
     {
-        Console.WriteLine("Friend selection by index not implemented in this class.");
+        Console.WriteLine("SelectFriend by index not implemented in Client.");
     }
 
     public void AddFriend(int index)
