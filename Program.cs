@@ -1,4 +1,6 @@
 ﻿using spotivy_app.spotivy;
+using System.Threading.Tasks;
+using static spotivy_app.spotivy.Constants;
 
 namespace spotivy_app
 {
@@ -16,11 +18,9 @@ namespace spotivy_app
                 new Person("Yiming"),
                 new Person("Robert")
             };
-
             List<Song> songs = new List<Song>();
 
             List<Album> albums = new List<Album>();
-
             client = new Client(users, albums, songs);
 
             Messenger.SendMessage("Welcome to Spotivy! This is a simple app to play music, built with C#!");
@@ -29,9 +29,54 @@ namespace spotivy_app
                 .Select(su => new Option { Label = su.Naam, Action = () => Login(su) })
                 .ToArray();
 
-            Messenger.OptionBox("Login", options);
-        }
+            Messenger.OptionBox("Login", loginOptions, true);
 
+            albums.Add(new Album
+            (
+               new List<Artist>
+                  {
+                  new Artist("noob", new List<Album>())
+                      {
+                          Songs = new List<Song>
+                          {
+                              new Song(
+                                  "Test Song",
+                                  new List<Artist>
+                                  {
+                                      new Artist("Test Artist", new List<Album>())
+                                  },
+                                  Genre.Pop,
+                                  120
+                              )
+                          }
+                      }
+                  },
+                  "Test Album",
+                  new List<Song>
+                  {
+                      new Song(
+                          "Test Song",
+                          new List<Artist>
+                          {
+                              new Artist("Test Artist", new List<Album>())
+                          },
+                          Genre.Pop,
+                          120
+                      ),
+                      new Song(
+                          "Noob Song",
+                          new List<Artist>
+                          {
+                              new Artist("Test Artist", new List<Album>())
+                          },
+                          Genre.Pop,
+                          110
+                      )
+                  }
+               ));
+
+            client.SelectAlbum(0);
+            client.Play();
         public static void Login(Person user)
         {
             SuperUser superUser;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using spotivy_app.spotivy;
+using System;
 
 public class Playlist : SongCollection
 {
@@ -12,18 +13,18 @@ public class Playlist : SongCollection
     public void Add(IPlayable playable)
     {
         playables.Add(playable);
-        Console.WriteLine($"Added to playlist '{Title}': {playable}");
+        Messenger.SendMessage($"Added to playlist '{Title}': {playable}");
     }
 
     public void Remove(IPlayable playable)
     {
         if (playables.Remove(playable))
         {
-            Console.WriteLine($"Removed from playlist '{Title}': {playable}");
+            Messenger.SendMessage($"Removed from playlist '{Title}': {playable}");
         }
         else
         {
-            Console.WriteLine("Playable not found in playlist.");
+            Messenger.SendMessage("Playable not found in playlist.");
         }
     }
 

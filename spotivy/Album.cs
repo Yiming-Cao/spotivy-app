@@ -7,6 +7,8 @@
         public Album(List<Artist> artists, string title, List<Song> songs) : base(title)
         {
             Artists = artists;
+            playables = songs.Cast<IPlayable>().ToList();
+            CurrentSong = playables.FirstOrDefault();
         }
 
         public List<Artist> ShowArtists()

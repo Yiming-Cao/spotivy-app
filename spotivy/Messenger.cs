@@ -9,7 +9,7 @@ namespace spotivy_app.spotivy
             FormatMessage(message, 116, true);
         }
 
-        public static void OptionBox(string message, Option[] options)
+        public static void OptionBox(string message, Option[] options, bool Errors)
         {
             int MaxMessageLength = message.Length;
             // find longest message and set maxMessageLength to it max is 116 (full length of console 1080p not fullscreen)
@@ -44,9 +44,9 @@ namespace spotivy_app.spotivy
                         options[input].Action.Invoke();
                         validInput = true;
                     }
-                    else Console.WriteLine("Invalid input, please enter a number within the range.");
+                    else if (Errors) Console.WriteLine("Invalid input, please enter a number within the range.");
                 }
-                else Console.WriteLine("Invalid input, please enter a number."); 
+                else if (Errors) Console.WriteLine("Invalid input, please enter a number."); 
             }
         }
 

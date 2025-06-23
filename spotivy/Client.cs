@@ -118,18 +118,6 @@ public class Client
         if (CurrentlyPlaying != null)
         {
             Playing = true;
-
-            string title = "Unknown";
-            if (CurrentlyPlaying is Album album)
-            {
-                title = album.Title;
-            }
-            else if (CurrentlyPlaying is Song song)
-            {
-                title = song.Title;
-            }
-
-            Console.WriteLine($"Playing: {title}");
             CurrentlyPlaying.Play();
         }
     }
@@ -140,7 +128,6 @@ public class Client
         {
             Playing = false;
             CurrentlyPlaying.Pause();
-            Console.WriteLine("Paused.");
         }
     }
 
@@ -151,45 +138,16 @@ public class Client
             Playing = false;
             CurrentTime = 0;
             CurrentlyPlaying.Stop();
-            Console.WriteLine("Stopped.");
         }
     }
 
     public void NextSong()
     {
-        if (ActiveUser != null)
+        if (CurrentlyPlaying != null)
         {
-            // Fix: Provide an index argument to SelectPlaylist
-            Playlist currentPlaylist = ActiveUser.SelectPlaylist(0); // Assuming index 0 for demonstration
-            if (currentPlaylist != null)
-            {
-                var list = currentPlaylist.ShowPlayables(); // Get playable items
-                if (list.Count == 0) return;
-
-                int index = list.IndexOf(CurrentlyPlaying);
-                int nextIndex = (index + 1) % list.Count;
-
-                if (Shuffle)
-                {
-                    Random random = new Random(); // Ensure Random is instantiated
-                    nextIndex = random.Next(list.Count); // Shuffle playback
-                }
-
-                CurrentlyPlaying = list[nextIndex];
-
-                string title = CurrentlyPlaying is Song song ? song.Title :
-                               CurrentlyPlaying is Album album ? album.Title : "Unknown";
-
-                Console.WriteLine($"Next: {title}");
-                Play(); // Play the next item
-            }
-            else
-            {
-                Console.WriteLine("No playlist selected.");
-            }
+            CurrentlyPlaying.Next();
         }
     }
-
 
 
     public void SetShuffle(bool shuffle)
