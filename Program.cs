@@ -12,7 +12,7 @@ namespace spotivy_app
 
         static void Main(string[] args)
         {
-            List<Person> users = new List<Person>() 
+            List<Person> users = new List<Person>()
             {
                 new Person("Thomas"),
                 new Person("Yiming"),
@@ -25,9 +25,18 @@ namespace spotivy_app
 
             Messenger.SendMessage("Welcome to Spotivy! This is a simple app to play music, built with C#!");
 
-            var options = users
+            var loginOptions = users
                 .Select(su => new Option { Label = su.Naam, Action = () => Login(su) })
                 .ToArray();
+
+            var playOptions = new List<Option>
+            {
+                new Option { Label = "Play", Action = () => client.CurrentlyPlaying?.Play() },
+                new Option { Label = "Pause", Action = () => client.CurrentlyPlaying?.Pause() },
+                new Option { Label = "Stop", Action = () => client.CurrentlyPlaying?.Stop() },
+                new Option { Label = "Next Song", Action = () => client.NextSong() },
+            }.ToArray();
+
 
             Messenger.OptionBox("Login", loginOptions, true);
 
@@ -77,6 +86,7 @@ namespace spotivy_app
 
             client.SelectAlbum(0);
             client.Play();
+        }
         public static void Login(Person user)
         {
             SuperUser superUser;
