@@ -8,6 +8,7 @@ namespace spotivy_app
     {
         static Client client;
         static Dictionary<string, SuperUser> userCache = new Dictionary<string, SuperUser>();
+        public static string loggedInName; // <-- 加在 class Program 顶部作为全局变量
 
 
         static void Main(string[] args)
@@ -114,12 +115,13 @@ namespace spotivy_app
             }
 
             client.SetActiveUser(superUser);
+            loggedInName = user.Naam;  // 👈 记录登录时的名字
+
             Messenger.SendMessage($"Already logged in as: {client.ActiveUser.Naam}");
             client.ActiveUser.ShowFriends();
             client.ActiveUser.ShowPlaylists();
             ShowMainMenu();
         }
-
 
         static void ShowMainMenu()
         {
@@ -132,6 +134,45 @@ namespace spotivy_app
 
             var options = new List<Option>
             {
+                new Option
+                {
+                    Label = "Change name",
+                    Action = () =>
+                    {
+                        Messenger.SendMessage("Enter a new name:");
+                        string newName = Console.ReadLine();
+
+                        if (!string.IsNullOrWhiteSpace(newName))
+                        {
+                            // 修改原来的 Person 对象的名字（为了登录界面）
+                            var originalPerson = client.AllUsers.FirstOrDefault(p => p.Naam == loggedInName);
+                            if (originalPerson != null)
+                            {
+                                originalPerson.Naam = newName;
+                            }
+
+                            // 修改缓存键（userCache）
+                            if (userCache.ContainsKey(loggedInName))
+                            {
+                                userCache.Remove(loggedInName);
+                            }
+
+                            superUser.Naam = newName;
+                            userCache[newName] = superUser;
+
+                            // 更新 loggedInName
+                            loggedInName = newName;
+
+                            Messenger.SendMessage($"Your name has been changed to {newName}.");
+                        }
+                        else
+                        {
+                            Messenger.SendMessage("Invalid name. Name not changed.");
+                        }
+                    }
+                },
+
+
                 new Option
                 {
                     Label = "Add friends",
