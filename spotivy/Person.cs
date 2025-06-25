@@ -1,6 +1,7 @@
 ﻿using spotivy_app.spotivy;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 public class Person
 {
@@ -16,11 +17,13 @@ public class Person
     }
 
     public List<Person> ShowFriends()
-    {
+    {   
+
         string friendNames = string.Join("\n", Friends.Select(a => "- " + a.ToString()));
         Messenger.SendMessage($"{Naam}'s Friends:\n"+friendNames);
         return Friends;
     }
+
 
     public List<Playlist> ShowPlaylists()
     {
