@@ -1,5 +1,4 @@
 ﻿using spotivy_app.spotivy;
-using System.Threading.Tasks;
 using static spotivy_app.spotivy.Constants;
 
 namespace spotivy_app
@@ -9,26 +8,25 @@ namespace spotivy_app
         static Client client;
         static Dictionary<string, SuperUser> userCache = new Dictionary<string, SuperUser>();
 
-
         static void Main(string[] args)
         {
+            Constants constants = new Constants();
+            List<Artist> Artists = constants.artists;
+            List<Album> Albums = constants.albums;
+            List<Song> Songs = Albums.SelectMany(album => album.playables.OfType<Song>()).ToList();
             List<Person> users = new List<Person>()
             {
                 new Person("Thomas"),
                 new Person("Yiming"),
                 new Person("Robert")
             };
-            List<Song> songs = new List<Song>();
 
-            List<Album> albums = new List<Album>();
-            client = new Client(users, albums, songs);
+            client = new Client(users, Albums, Songs);
 
             Messenger.SendMessage("Welcome to Spotivy! This is a simple app to play music, built with C#!");
 
-            var loginOptions = users
-                .Select(su => new Option { Label = su.Naam, Action = () => Login(su) })
-                .ToArray();
-
+            var loginOptions = users.Select(su => new Option { Label = su.Naam, Action = () => Login(su) }).ToArray();
+             
             var playOptions = new List<Option>
             {
                 new Option { Label = "Play", Action = () => client.CurrentlyPlaying?.Play() },
@@ -39,50 +37,6 @@ namespace spotivy_app
 
 
             Messenger.OptionBox("Login", loginOptions, true);
-
-            albums.Add(new Album
-            (
-               new List<Artist>
-                  {
-                  new Artist("noob", new List<Album>())
-                      {
-                          Songs = new List<Song>
-                          {
-                              new Song(
-                                  "Test Song",
-                                  new List<Artist>
-                                  {
-                                      new Artist("Test Artist", new List<Album>())
-                                  },
-                                  Genre.Pop,
-                                  120
-                              )
-                          }
-                      }
-                  },
-                  "Test Album",
-                  new List<Song>
-                  {
-                      new Song(
-                          "Test Song",
-                          new List<Artist>
-                          {
-                              new Artist("Test Artist", new List<Album>())
-                          },
-                          Genre.Pop,
-                          120
-                      ),
-                      new Song(
-                          "Noob Song",
-                          new List<Artist>
-                          {
-                              new Artist("Test Artist", new List<Album>())
-                          },
-                          Genre.Pop,
-                          110
-                      )
-                  }
-               ));
 
             client.SelectAlbum(0);
             client.Play();

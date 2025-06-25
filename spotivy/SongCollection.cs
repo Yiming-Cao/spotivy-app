@@ -3,7 +3,7 @@
 public class SongCollection : IPlayable
 {
     public string Title { get; protected set; }
-    protected List<IPlayable> playables = new List<IPlayable>();
+    public List<IPlayable> playables { get; set; } = new List<IPlayable>();
     protected IPlayable CurrentSong;
 
     public SongCollection(string title)
