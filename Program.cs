@@ -8,6 +8,7 @@ namespace spotivy_app
         static Client client;
         static Dictionary<string, SuperUser> userCache = new Dictionary<string, SuperUser>();
         public static string loggedInName; // <-- 加在 class Program 顶部作为全局变量
+        static List<Person> users;
 
         static void Main(string[] args)
         {
@@ -15,7 +16,7 @@ namespace spotivy_app
             List<Artist> Artists = constants.artists;
             List<Album> Albums = constants.albums;
             List<Song> Songs = Albums.SelectMany(album => album.playables.OfType<Song>()).ToList();
-            List<Person> users = new List<Person>()
+            users = new List<Person>()
             {
                 new Person("Thomas"),
                 new Person("Yiming"),
@@ -25,12 +26,30 @@ namespace spotivy_app
             client = new Client(users, Albums, Songs);
 
             Messenger.SendMessage("Welcome to Spotivy! This is a simple app to play music, built with C#!");
-            // 构造登录选项，包括用户和退出选项
+      
+
+            //var playOptions = new List<Option>
+            //{
+            //    new Option { Label = "Play", Action = () => client.CurrentlyPlaying?.Play() },
+            //    new Option { Label = "Pause", Action = () => client.CurrentlyPlaying?.Pause() },
+            //    new Option { Label = "Stop", Action = () => client.CurrentlyPlaying?.Stop() },
+            //    new Option { Label = "Next Song", Action = () => client.NextSong() },
+            //}.ToArray();
+
+
+
+            //client.SelectAlbum(0);
+            //client.Play();
+            ShowLoginMenu();
+
+        }
+
+        static void ShowLoginMenu()
+        {
             var loginOptions = users
                 .Select(su => new Option { Label = su.Naam, Action = () => Login(su) })
                 .ToList();
 
-            // 添加退出选项
             loginOptions.Insert(0, new Option
             {
                 Label = "Exit Application",
@@ -41,20 +60,9 @@ namespace spotivy_app
                 }
             });
 
-            var playOptions = new List<Option>
-            {
-                new Option { Label = "Play", Action = () => client.CurrentlyPlaying?.Play() },
-                new Option { Label = "Pause", Action = () => client.CurrentlyPlaying?.Pause() },
-                new Option { Label = "Stop", Action = () => client.CurrentlyPlaying?.Stop() },
-                new Option { Label = "Next Song", Action = () => client.NextSong() },
-            }.ToArray();
-
-
             Messenger.OptionBox("Login", loginOptions.ToArray(), true);
-
-            client.SelectAlbum(0);
-            client.Play();
         }
+
         public static void Login(Person user)
         {
             SuperUser superUser;
@@ -307,7 +315,7 @@ namespace spotivy_app
                     Action = () =>
                     {
                         Messenger.SendMessage("Logged out.");
-                        Main(null);
+                        ShowLoginMenu();
                     }
                 }
             };
