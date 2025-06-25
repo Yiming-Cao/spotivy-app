@@ -24,6 +24,7 @@ namespace spotivy_app.spotivy
             if (song != null && !Songs.Contains(song))
             {
                 Songs.Add(song);
+                song.Artists.Add(this);
             }
         }
 
@@ -32,6 +33,13 @@ namespace spotivy_app.spotivy
             if (album != null && !Albums.Contains(album))
             {
                 Albums.Add(album);
+                foreach (var playable in album.playables)
+                {
+                    if (playable is Song song)
+                    {
+                        AddSong(song);
+                    }
+                }
             }
         }
 
