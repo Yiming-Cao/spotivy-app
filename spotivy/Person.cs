@@ -5,7 +5,7 @@ using System.Text;
 
 public class Person
 {
-    public string Naam { get; private set; }
+    public string Naam { get; set; }
     public List<Person> Friends { get; private set; }
     public List<Playlist> Playlists { get; private set; }
 
