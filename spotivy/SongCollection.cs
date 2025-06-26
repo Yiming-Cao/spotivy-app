@@ -4,12 +4,12 @@ public class SongCollection : IPlayable
 {
     public string Title { get; protected set; }
     public List<IPlayable> playables { get; set; } = new List<IPlayable>();
-    protected IPlayable CurrentSong;
+
+    protected int songIndex = 0;
 
     public SongCollection(string title)
     {
         Title = title;
-        CurrentSong = playables.FirstOrDefault();
     }
 
     public virtual List<IPlayable> ShowPlayables()
@@ -19,32 +19,28 @@ public class SongCollection : IPlayable
 
     public virtual void Play()
     {
-        CurrentSong?.Play();
+        playables[songIndex]?.Play();
     }
 
     public virtual void Pause()
     {
-        CurrentSong?.Pause();
+        playables[songIndex]?.Pause();
     }
 
     public virtual void Stop()
     {
-        CurrentSong?.Stop();
+        playables[songIndex]?.Stop();
     }
 
     public void Next()
     {
-        CurrentSong?.Next();
-        playables.Remove(CurrentSong);
+        playables[songIndex]?.Next();
 
         if (playables.Count > 0)
         {
-            CurrentSong = playables.FirstOrDefault();
-        }
-        else
-        {
-            CurrentSong = null;
-            Messenger.SendMessage("All songs played");
+            songIndex++;
+            if (playables[songIndex] == null) Messenger.SendMessage("All songs played");
+            songIndex = 0;
         }
     }
 

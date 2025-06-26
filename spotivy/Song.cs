@@ -10,7 +10,7 @@ namespace spotivy_app.spotivy
         public int Length { get; set; }
 
         private bool Paused = false;
-        private bool Playing = true;
+        private bool Playing = false;
 
         public Song(string title, List<Artist> artists, Genre genre, int length)
         {
@@ -22,17 +22,30 @@ namespace spotivy_app.spotivy
 
         public void Play()
         {
+            if (Playing)
+            {
+                return;
+            }
+
+            string artistNames = string.Join("\n", Artists.Select(a => "- " + a.ToString()));
+            Messenger.SendMessage($"Playing song: {Title}\nBy:\n{artistNames}\nGenre: {Genre}");
+
+            Playing = true;
+            Paused = false;
+
             CancellationTokenSource CancellationToken = new();
             Task animationTask = Task.Run(async () =>
             {
-                string[] animation = { "..  ", " .. ", "  ..", ".  ." };
-                string artistNames = string.Join("\n", Artists.Select(a => "- " + a.ToString()));
+                await Task.Delay(10, CancellationToken.Token);
+                
+                string[] animation = { "..   ", " ..  ", "  .. ", "   ..", "  .. ", " ..  " };
                 Console.WriteLine("");
-                Messenger.SendMessage($"Playing song: {Title}\nBy:\n{artistNames}\nGenre: {Genre}");
                 for (int i = 0; i <= Length * 4; i++)
                 {
                     if (!Playing)
+                    {
                         break;
+                    }
 
                     if (Paused)
                     {
@@ -51,9 +64,16 @@ namespace spotivy_app.spotivy
         }
         public void Pause()
         {
-            Paused = true;
-            Console.Write("\r \r");
-            Messenger.SendMessage($"Paused song: " + Title);
+            if (!Paused)
+            {
+                Console.Write("\r \r");
+                Messenger.SendMessage($"Paused song: " + Title);
+            } else
+            {
+                Messenger.SendMessage($"Resumed song: " + Title);
+            }
+            Paused = !Paused;
+                
         }
         public void Continue()
         {
@@ -70,7 +90,7 @@ namespace spotivy_app.spotivy
         {
             if (!Playing) return;
             Playing = false;
-            Console.WriteLine("");
+            Console.Write("\r \r");
             Messenger.SendMessage($"Stopped song:" + Title);
         }
 

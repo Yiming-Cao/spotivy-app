@@ -176,15 +176,7 @@ public class Client
     {
         if (ActiveUser != null)
         {
-            var playlist = ActiveUser.SelectPlaylist(index);
-            if (playlist != null)
-            {
-                Console.WriteLine($"Selected playlist: {playlist.Title}");
-            }
-            else
-            {
-                Console.WriteLine("Invalid playlist index.");
-            }
+            CurrentlyPlaying = ActiveUser.SelectPlaylist(index);
         }
     }
 
@@ -278,13 +270,7 @@ public class Client
 
     public void ShowFriends()
     {
-        if (ActiveUser != null)
-        {
-            foreach (var f in ActiveUser.ShowFriends())
-            {
-                Console.WriteLine($"- {f.Naam}");
-            }
-        }
+        if (ActiveUser != null) ActiveUser.ShowFriends();
     }
 
     public void SelectFriend(int index)

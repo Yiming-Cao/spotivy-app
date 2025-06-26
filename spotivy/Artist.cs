@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace spotivy_app.spotivy
+﻿namespace spotivy_app.spotivy
 {
     public class Artist
     {
@@ -32,7 +26,6 @@ namespace spotivy_app.spotivy
         {
             if (album != null && !Albums.Contains(album))
             {
-                Albums.Add(album);
                 foreach (var playable in album.playables)
                 {
                     if (playable is Song song)
@@ -40,6 +33,7 @@ namespace spotivy_app.spotivy
                         AddSong(song);
                     }
                 }
+                Albums.Add(album);
             }
         }
 

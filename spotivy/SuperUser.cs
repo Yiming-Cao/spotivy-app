@@ -9,12 +9,13 @@ public class SuperUser : Person
     
     public void AddFriend(Person person)
     {
-        if (person == null || Friends.Contains(person))
+        if (person == null || Friends.Contains(person) || person == this)
         {
             Messenger.SendMessage("Cannot add friend: null or already in list.");
             return;
         }
         Friends.Add(person);
+        person.Friends.Add(this);
         Messenger.SendMessage($"{Naam} added {person.Naam} as a friend.");
     }
 
@@ -25,10 +26,7 @@ public class SuperUser : Person
         {
             Messenger.SendMessage($"{Naam} removed {person.Naam} from friends.");
         }
-        else
-        {
-            Messenger.SendMessage("Friend not found.");
-        }
+        else Messenger.SendMessage("Friend not found.");
     }
 
     

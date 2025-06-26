@@ -361,14 +361,6 @@
                     new Song("Judas", new List<Artist>(), Genre.Pop, 260),
                     new Song("Americano", new List<Artist>(), Genre.Pop, 244)
                 }),
-                new Album(new List<Artist>(), "ARTPOP", new List<Song>
-                {
-                    new Song("Aura", new List<Artist>(), Genre.Pop, 244),
-                    new Song("Venus", new List<Artist>(), Genre.Pop, 233),
-                    new Song("G.U.Y.", new List<Artist>(), Genre.Pop, 237),
-                    new Song("Sexxx Dreams", new List<Artist>(), Genre.Pop, 223),
-                    new Song("Jewels n' Drugs", new List<Artist>(), Genre.Pop, 203)
-                }),
                 new Album(new List<Artist>(), "Joanne", new List<Song>
                 {
                     new Song("Diamond Heart", new List<Artist>(), Genre.Pop, 230),

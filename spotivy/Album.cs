@@ -8,7 +8,6 @@
         {
             Artists = artists;
             playables = songs.Cast<IPlayable>().ToList();
-            CurrentSong = playables.FirstOrDefault();
         }
 
         public List<Artist> ShowArtists()

@@ -13,7 +13,7 @@ namespace spotivy_app
         {
             Constants constants = new Constants();
             List<Artist> Artists = constants.artists;
-            List<Album> Albums = constants.albums;
+            List<Album> Albums = constants.artists.SelectMany(artist => artist.Albums).ToList();
             List<Song> Songs = Albums.SelectMany(album => album.playables.OfType<Song>()).ToList();
             List<Person> users = new List<Person>()
             {
@@ -25,35 +25,11 @@ namespace spotivy_app
             client = new Client(users, Albums, Songs);
 
             Messenger.SendMessage("Welcome to Spotivy! This is a simple app to play music, built with C#!");
-            // 构造登录选项，包括用户和退出选项
-            var loginOptions = users
-                .Select(su => new Option { Label = su.Naam, Action = () => Login(su) })
-                .ToList();
 
-            // 添加退出选项
-            loginOptions.Insert(0, new Option
-            {
-                Label = "Exit Application",
-                Action = () =>
-                {
-                    Messenger.SendMessage("Exiting application...");
-                    Environment.Exit(0);
-                }
-            });
-
-            var playOptions = new List<Option>
-            {
-                new Option { Label = "Play", Action = () => client.CurrentlyPlaying?.Play() },
-                new Option { Label = "Pause", Action = () => client.CurrentlyPlaying?.Pause() },
-                new Option { Label = "Stop", Action = () => client.CurrentlyPlaying?.Stop() },
-                new Option { Label = "Next Song", Action = () => client.NextSong() },
-            }.ToArray();
-
+            var loginOptions = users.Select(su => new Option { Label = su.Naam, Action = () => Login(su) }).ToList();
+            loginOptions.Insert(0, new Option {Label = "Exit", Action = () => { Messenger.SendMessage("Exiting application..."); Environment.Exit(0);}});
 
             Messenger.OptionBox("Login", loginOptions.ToArray(), true);
-
-            client.SelectAlbum(0);
-            client.Play();
         }
         public static void Login(Person user)
         {
@@ -64,125 +40,53 @@ namespace spotivy_app
                 superUser = new SuperUser(user.Naam);
                 userCache[user.Naam] = superUser;
             }
-            else
-            {
-                superUser = userCache[user.Naam];
-            }
+            else superUser = userCache[user.Naam];
 
             client.SetActiveUser(superUser);
             loggedInName = user.Naam;  // 👈 记录登录时的名字
 
             Messenger.SendMessage($"Already logged in as: {client.ActiveUser.Naam}");
-            client.ActiveUser.ShowFriends();
-            client.ActiveUser.ShowPlaylists();
             ShowMainMenu();
         }
 
         static void ShowMainMenu()
         {
+            var currentOptions = new List<Option>();
             var superUser = client.ActiveUser as SuperUser;
+            var options = new List<Option>();
+            IPlayable playable;
+
             if (superUser == null)
             {
                 Messenger.SendMessage("You are not a superuser.");
                 return;
             }
 
-            var options = new List<Option>
+            var playOptions = new List<Option>
             {
-                new Option
-                {
-                    Label = "Change name",
-                    Action = () =>
+                new Option { Label = "Return to main menu", Action = () => { currentOptions = options; } },
+                new Option { Label = "Play", Action = () => client.CurrentlyPlaying?.Play() },
+                new Option { Label = "Pause", Action = () => client.CurrentlyPlaying?.Pause() },
+                new Option { Label = "Stop", Action = () => client.CurrentlyPlaying?.Stop() },
+                new Option { Label = "Next Song", Action = () => client.NextSong() },
+            }.ToArray();
+
+            var playlistOptions = new List<Option>
+            {
+                new Option { Label = "Return to main menu.",Action = () => { currentOptions = options; } },
+                new Option { Label = "Show playlists", Action = client.ShowPlaylists},
+                new Option { Label = "Select playlist", Action = () =>
                     {
-                        Messenger.SendMessage("Enter a new name:");
-                        string newName = Console.ReadLine();
+                        var allPlaylistOptions = superUser.Playlists.Select((pl, i) => new Option
+                            { Label = pl.Title, Action = () =>
+                                { client.SelectPlaylist(i); Messenger.SendMessage($"Playlist '{pl.Title}'."); currentOptions = playOptions.ToList(); } }).ToList();
 
-                        if (!string.IsNullOrWhiteSpace(newName))
-                        {
-                            // 修改原来的 Person 对象的名字（为了登录界面）
-                            var originalPerson = client.AllUsers.FirstOrDefault(p => p.Naam == loggedInName);
-                            if (originalPerson != null)
-                            {
-                                originalPerson.Naam = newName;
-                            }
+                        allPlaylistOptions.Insert(0, new Option{ Label = "Return to main menu",  Action = () => { currentOptions = options; } });
 
-                            // 修改缓存键（userCache）
-                            if (userCache.ContainsKey(loggedInName))
-                            {
-                                userCache.Remove(loggedInName);
-                            }
-
-                            superUser.Naam = newName;
-                            userCache[newName] = superUser;
-
-                            // 更新 loggedInName
-                            loggedInName = newName;
-
-                            Messenger.SendMessage($"Your name has been changed to {newName}.");
-                        }
-                        else
-                        {
-                            Messenger.SendMessage("Invalid name. Name not changed.");
-                        }
+                        Messenger.OptionBox("Select a playlist:", allPlaylistOptions.ToArray(), false);
                     }
                 },
-
-
-                new Option
-                {
-                    Label = "Add friends",
-                    Action = () =>
-                    {
-                        var friendOptions = client.AllUsers
-                            .Where(u => u != superUser && !superUser.Friends.Contains(u))
-                            .Select(u => new Option
-                            {
-                                Label = u.Naam,
-                                Action = () =>
-                                {
-                                    superUser.AddFriend(u);
-                                    Messenger.SendMessage($"{u.Naam} added as a friend.");
-                                }
-                            }).ToList();
-
-                        friendOptions.Insert(0, new Option
-                        {
-                            Label = "Return to Main Menu",
-                            Action = () => ShowMainMenu()
-                        });
-
-                        Messenger.OptionBox("Select a user to add as friend:", friendOptions.ToArray(), false);
-                    }
-                },
-                new Option
-                {
-                    Label = "Remove friends",
-                    Action = () =>
-                    {
-                        var friendOptions = superUser.Friends
-                            .Select(f => new Option
-                            {
-                                Label = f.Naam,
-                                Action = () =>
-                                {
-                                    superUser.RemoveFriend(f);
-                                    Messenger.SendMessage($"{f.Naam} removed from friends.");
-                                }
-                            }).ToList();
-
-                        friendOptions.Insert(0, new Option
-                        {
-                            Label = "Return to Main Menu",
-                            Action = () => ShowMainMenu()
-                        });
-
-                        Messenger.OptionBox("Select a friend to remove:", friendOptions.ToArray(), false);
-                    }
-                },
-                new Option
-                {
-                    Label = "Create playlist",
-                    Action = () =>
+                new Option { Label = "Create playlist", Action = () =>
                     {
                         Messenger.SendMessage("Enter a name for the new playlist (or 0 to cancel):");
                         string title = Console.ReadLine();
@@ -195,126 +99,121 @@ namespace spotivy_app
                         Messenger.SendMessage($"Playlist '{title}' created.");
                     }
                 },
-                new Option
-                {
-                    Label = "Remove playlist",
-                    Action = () =>
+                new Option { Label = "Remove playlist", Action = () =>
                     {
-                        var playlistOptions = superUser.Playlists
-                            .Select((pl, i) => new Option
-                            {
-                                Label = pl.Title,
-                                Action = () =>
-                                {
-                                    superUser.RemovePlaylist(i);
-                                    Messenger.SendMessage($"Playlist '{pl.Title}' removed.");
-                                }
-                            }).ToList();
+                        var allPlaylistOptions = superUser.Playlists.Select((pl, i) => new Option
+                            { Label = pl.Title, Action = () =>
+                                { superUser.RemovePlaylist(i); Messenger.SendMessage($"Playlist '{pl.Title}' removed."); } }).ToList();
 
-                        playlistOptions.Insert(0, new Option
-                        {
-                            Label = "Return to Main Menu",
-                            Action = () => ShowMainMenu()
-                        });
+                        allPlaylistOptions.Insert(0, new Option{ Label = "Return to main menu",  Action = () => { currentOptions = options; } });
 
-                        Messenger.OptionBox("Select a playlist to remove:", playlistOptions.ToArray(), false);
+                        Messenger.OptionBox("Select a playlist to remove:", allPlaylistOptions.ToArray(), false);
                     }
                 },
-                new Option
-                {
-                    Label = "Add music to playlist",
-                    Action = () =>
-                    {
-                        var playlistOptions = superUser.Playlists
-                            .Select(pl => new Option
-                            {
-                                Label = pl.Title,
-                                Action = () =>
-                                {
-                                    var songOptions = client.AllSongs.Select(song => new Option
+                new Option { Label = "Add music to playlist", Action = () =>
+                    { var allPlaylistOptions = superUser.Playlists.Select(pl => new Option { Label = pl.Title, Action = () =>
+                                { var songOptions = client.AllSongs.Select(song => new Option { Label = song.ToString(), Action = () =>
                                     {
-                                        Label = song.ToString(),
-                                        Action = () =>
-                                        {
-                                            pl.Add(song);
-                                            Messenger.SendMessage($"Song '{song.Title}' added to playlist '{pl.Title}'.");
-                                        }
-                                    }).ToList();
+                                        pl.Add(song);
+                                        Messenger.SendMessage($"Song '{song.Title}' added to playlist '{pl.Title}'.");}}).ToList();
 
-                                    songOptions.Insert(0, new Option
-                                    {
-                                        Label = "Return to Main Menu",
-                                        Action = () => ShowMainMenu()
-                                    });
+                                        songOptions.Insert(0, new Option { Label = "Return to Main Menu", Action = () => ShowMainMenu()});
 
-                                    Messenger.OptionBox("Select a song to add:", songOptions.ToArray(), false);
-                                }
-                            }).ToList();
+                                        Messenger.OptionBox("Select a song to add:", songOptions.ToArray(), false);
+                                    }
+                                }).ToList();
 
-                        playlistOptions.Insert(0, new Option
-                        {
-                            Label = "Return to Main Menu",
-                            Action = () => ShowMainMenu()
-                        });
+                        allPlaylistOptions.Insert(0, new Option { Label = "Return to Main Menu", Action = () => ShowMainMenu() });
 
-                        Messenger.OptionBox("Select a playlist:", playlistOptions.ToArray(), false);
+                        Messenger.OptionBox("Select a playlist:", allPlaylistOptions.ToArray(), false);
                     }
                 },
-                new Option
-                {
-                    Label = "Remove music from playlist",
-                    Action = () =>
-                    {
-                        var playlistOptions = superUser.Playlists
-                            .Select(pl => new Option
-                            {
-                                Label = pl.Title,
-                                Action = () =>
+                new Option { Label = "Remove music from playlist", Action = () =>{
+                        var allPlaylistOptions = superUser.Playlists.Select(pl => new Option { Label = pl.Title, Action = () =>
                                 {
                                     var playables = pl.ShowPlayables();
-                                    var playableOptions = playables.Select(p => new Option
-                                    {
-                                        Label = p.ToString(),
-                                        Action = () =>
+                                    var playableOptions = playables.Select(p => new Option { Label = p.ToString(), Action = () =>
                                         {
                                             pl.Remove(p);
                                             Messenger.SendMessage($"Removed '{p}' from playlist '{pl.Title}'.");
                                         }
                                     }).ToList();
 
-                                    playableOptions.Insert(0, new Option
-                                    {
-                                        Label = "Return to Main Menu",
-                                        Action = () => ShowMainMenu()
-                                    });
+                                    playableOptions.Insert(0, new Option { Label = "Return to Main Menu", Action = () => ShowMainMenu()});
 
                                     Messenger.OptionBox("Select a song to remove:", playableOptions.ToArray(), false);
                                 }
                             }).ToList();
 
-                        playlistOptions.Insert(0, new Option
-                        {
+                        allPlaylistOptions.Insert(0, new Option {
                             Label = "Return to Main Menu",
-                            Action = () => ShowMainMenu()
+                            Action = () => { }
                         });
 
-                        Messenger.OptionBox("Select a playlist:", playlistOptions.ToArray(), false);
+                        Messenger.OptionBox("Select a playlist:", allPlaylistOptions.ToArray(), false);
                     }
                 },
-                new Option
-                {
-                    Label = "Logout",
-                    Action = () =>
+            }.ToArray();
+
+
+            options = new List<Option>
+            {
+                new Option { Label = "Change name", Action = () =>
                     {
-                        Messenger.SendMessage("Logged out.");
-                        Main(null);
+                        Messenger.SendMessage("Enter a new name:");
+                        string newName = Console.ReadLine();
+
+                        if (!string.IsNullOrWhiteSpace(newName))
+                        {
+                            // 修改原来的 Person 对象的名字（为了登录界面）
+                            var originalPerson = client.AllUsers.FirstOrDefault(p => p.Naam == loggedInName);
+                            if (originalPerson != null) originalPerson.Naam = newName;
+
+                            // 修改缓存键（userCache）
+                            if (userCache.ContainsKey(loggedInName)) userCache.Remove(loggedInName);
+
+                            superUser.Naam = newName;
+                            userCache[newName] = superUser;
+
+                            // 更新 loggedInName
+                            loggedInName = newName;
+
+                            Messenger.SendMessage($"Your name has been changed to {newName}.");
+                        } else Messenger.SendMessage("Invalid name. Name not changed.");
                     }
-                }
-            };
+                },
+
+
+                new Option { Label = "Add friends", Action = () =>
+                    {
+                        var friendOptions = client.AllUsers.Where(u => u != superUser && !superUser.Friends.Contains(u)).Select(u => new Option
+                            { Label = u.Naam, Action = () =>
+                                { superUser.AddFriend(u); Messenger.SendMessage($"{u.Naam} added as a friend.");}}).ToList();
+
+                        friendOptions.Insert(0, new Option{ Label = "Return to Main Menu",  Action = () => ShowMainMenu() });
+
+                        Messenger.OptionBox("Select a user to add as friend:", friendOptions.ToArray(), false);
+                    }
+                },
+                new Option { Label = "Show friends", Action = client.ShowFriends},
+
+                new Option { Label = "Remove friends", Action = () => { var friendOptions = superUser.Friends.Select(f => new Option { Label = f.Naam, Action = () =>
+                    {
+                        superUser.RemoveFriend(f); Messenger.SendMessage($"{f.Naam} removed from friends.");}}).ToList();
+                        friendOptions.Insert(0, new Option { Label = "Return to Main Menu", Action = () => ShowMainMenu()});
+
+                        Messenger.OptionBox("Select a friend to remove:", friendOptions.ToArray(), true);
+                    }
+                },
+                new Option { Label = "Playlists", Action = () => { currentOptions = playlistOptions.ToList(); } },
+                new Option { Label = "Logout", Action = () => { Messenger.SendMessage("Logged out."); Main(null);}},
+            }.ToList();
+
+            currentOptions = options;
 
             while (true)
             {
-                Messenger.OptionBox("Main Menu", options.ToArray(), true);
+                Messenger.OptionBox("Spotivy", currentOptions.ToArray(), false);
             }
         }
     }
