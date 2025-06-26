@@ -1,14 +1,18 @@
 ﻿using spotivy_app.spotivy;
 using static spotivy_app.spotivy.Constants;
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+    
 namespace spotivy_app
 {
     internal class Program
     {
         static Client client;
         static Dictionary<string, SuperUser> userCache = new Dictionary<string, SuperUser>();
+        static Dictionary<string, List<string>> pendingFriendRequests = new Dictionary<string, List<string>>();
         public static string loggedInName; // <-- 加在 class Program 顶部作为全局变量
-        static List<Person> users;
+        static List<Person> users = new List<Person>();
 
         static void Main(string[] args)
         {
@@ -67,23 +71,32 @@ namespace spotivy_app
         {
             SuperUser superUser;
 
-            if (!userCache.ContainsKey(user.Naam))
+            if (userCache.TryGetValue(user.Naam, out superUser))
             {
-                superUser = new SuperUser(user.Naam);
-                userCache[user.Naam] = superUser;
+                // Already cached
             }
             else
             {
-                superUser = userCache[user.Naam];
+                superUser = user is SuperUser existing ? existing : new SuperUser(user.Naam);
+                superUser.Friends = user.Friends;
+                superUser.Playlists = user.Playlists;
+                userCache[user.Naam] = superUser;
             }
 
+            loggedInName = superUser.Naam;
             client.SetActiveUser(superUser);
-            loggedInName = user.Naam;  // 👈 记录登录时的名字
-
-            Messenger.SendMessage($"Already logged in as: {client.ActiveUser.Naam}");
-            client.ActiveUser.ShowFriends();
-            client.ActiveUser.ShowPlaylists();
+            Messenger.SendMessage($"Logged in as: {superUser.Naam}");
+            superUser.ShowFriends();
+            superUser.ShowPlaylists();
             ShowMainMenu();
+        }
+
+        static Person GetCachedUser(string name)
+        {
+            if (userCache.TryGetValue(name, out var su))
+                return su;
+
+            return client.AllUsers.FirstOrDefault(u => u.Naam == name);
         }
 
         static void ShowMainMenu()
@@ -138,53 +151,122 @@ namespace spotivy_app
 
                 new Option
                 {
-                    Label = "Add friends",
+                    Label = "Send Friend Request",
                     Action = () =>
                     {
-                        var friendOptions = client.AllUsers
-                            .Where(u => u != superUser && !superUser.Friends.Contains(u))
-                            .Select(u => new Option
-                            {
-                                Label = u.Naam,
-                                Action = () =>
-                                {
-                                    superUser.AddFriend(u);
-                                    Messenger.SendMessage($"{u.Naam} added as a friend.");
-                                }
-                            }).ToList();
+                        var others = client.AllUsers
+                            .Where(u => u.Naam != superUser.Naam && !superUser.Friends.Any(f => f.Naam == u.Naam))
+                            .ToList();
 
-                        friendOptions.Insert(0, new Option
+                        if (others.Count == 0)
+                        {
+                            Messenger.SendMessage("No users available to send request.");
+                            return;
+                        }
+
+                        var sendOptions = others.Select(u => new Option
+                        {
+                            Label = u.Naam,
+                            Action = () =>
+                            {
+                                if (!pendingFriendRequests.ContainsKey(u.Naam))
+                                    pendingFriendRequests[u.Naam] = new List<string>();
+
+                                if (!pendingFriendRequests[u.Naam].Contains(superUser.Naam))
+                                {
+                                    pendingFriendRequests[u.Naam].Add(superUser.Naam);
+                                    Messenger.SendMessage($"Friend request sent to {u.Naam}.");
+                                }
+                                else
+                                {
+                                    Messenger.SendMessage("Request already sent.");
+                                }
+                            }
+                        }).ToList();
+
+                        sendOptions.Insert(0, new Option
                         {
                             Label = "Return to Main Menu",
                             Action = () => ShowMainMenu()
                         });
 
-                        Messenger.OptionBox("Select a user to add as friend:", friendOptions.ToArray(), false);
+                        Messenger.OptionBox("Select user to send request:", sendOptions.ToArray(), false);
                     }
                 },
                 new Option
                 {
-                    Label = "Remove friends",
+                    Label = "View Friend Requests",
                     Action = () =>
                     {
-                        var friendOptions = superUser.Friends
-                            .Select(f => new Option
-                            {
-                                Label = f.Naam,
-                                Action = () =>
-                                {
-                                    superUser.RemoveFriend(f);
-                                    Messenger.SendMessage($"{f.Naam} removed from friends.");
-                                }
-                            }).ToList();
+                        if (!pendingFriendRequests.ContainsKey(superUser.Naam) || pendingFriendRequests[superUser.Naam].Count == 0)
+                        {
+                            Messenger.SendMessage("No pending requests.");
+                            return;
+                        }
 
-                        friendOptions.Insert(0, new Option
+                        var requests = pendingFriendRequests[superUser.Naam].ToList();
+                        var acceptOptions = requests.Select(name => new Option
+                        {
+                            Label = $"Accept request from {name}",
+                            Action = () =>
+                            {
+                                var requester = GetCachedUser(name);
+                                if (requester == null)
+                                {
+                                    Messenger.SendMessage("Requester not found.");
+                                    return;
+                                }
+
+                                if (!superUser.Friends.Any(f => f.Naam == name))
+                                    superUser.Friends.Add(requester);
+
+                                if (!requester.Friends.Any(f => f.Naam == superUser.Naam))
+                                    requester.Friends.Add(superUser);
+
+                                pendingFriendRequests[superUser.Naam].Remove(name);
+                                Messenger.SendMessage($"You are now friends with {name}.");
+                            }
+                        }).ToList();
+
+                        acceptOptions.Insert(0, new Option
                         {
                             Label = "Return to Main Menu",
                             Action = () => ShowMainMenu()
                         });
 
-                        Messenger.OptionBox("Select a friend to remove:", friendOptions.ToArray(), false);
+                        Messenger.OptionBox("Pending Friend Requests", acceptOptions.ToArray(), false);
+                    }
+                },
+
+                new Option
+                {
+                    Label = "Remove Friends",
+                    Action = () =>
+                    {
+                        if (superUser.Friends.Count == 0)
+                        {
+                            Messenger.SendMessage("No friends to remove.");
+                            return;
+                        }
+
+                        var removeOptions = superUser.Friends.Select(f => new Option
+                        {
+                            Label = f.Naam,
+                            Action = () =>
+                            {
+                                superUser.RemoveFriend(f);
+                                f.Friends.Remove(superUser); // 双向删除
+                                Messenger.SendMessage($"{f.Naam} removed.");
+                            }
+                        }).ToList();
+
+                        removeOptions.Insert(0, new Option
+                        {
+                            Label = "Return to Main Menu",
+                            Action = () => ShowMainMenu()
+                        });
+
+                        Messenger.OptionBox("Select friend to remove:", removeOptions.ToArray(), false);
                     }
                 },
                 new Option
